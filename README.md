@@ -1,0 +1,1 @@
+# zabbix-to-gotify-alert
