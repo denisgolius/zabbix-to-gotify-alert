@@ -10,19 +10,18 @@
 8. Add new action: Configuration - > Actions
 9. Add new mediatype to your zabbix profile and paste token from Gotify app to Send to field
 
-![Screenshot(3)](https://raw.githubusercontent.com/denisgolius/zabbix-to-gotify-alert/master/Screenshot(3).png)
+![](https://i.imgur.com/yo1gRkK.png)
 
-![Screenshot(4)](https://raw.githubusercontent.com/denisgolius/zabbix-to-gotify-alert/master/Screenshot(4).png)
+![](https://i.imgur.com/PCh5k0E.png)
 
-![Screenshot(5)](https://raw.githubusercontent.com/denisgolius/zabbix-to-gotify-alert/master/Screenshot(5).png)
+![](https://i.imgur.com/Xt14cpV.png)
 
-![Screenshot(6)](https://raw.githubusercontent.com/denisgolius/zabbix-to-gotify-alert/master/Screenshot(6).png)
+![](https://i.imgur.com/KQhh8MS.png)
 
-![Screenshot(7)](https://raw.githubusercontent.com/denisgolius/zabbix-to-gotify-alert/master/Screenshot(7).png)
+![](https://i.imgur.com/wk19XVO.png)
 
-![Screenshot(8)](https://raw.githubusercontent.com/denisgolius/zabbix-to-gotify-alert/master/Screenshot(8).png)
+![](https://i.imgur.com/wk19XVO.png)
 
-![Screenshot(10)](https://raw.githubusercontent.com/denisgolius/zabbix-to-gotify-alert/master/Screenshot(10).png)
+![](https://i.imgur.com/35fkzdB.png)
 
-![Screenshot(11)](https://raw.githubusercontent.com/denisgolius/zabbix-to-gotify-alert/master/Screenshot(11).png)
-
+![](https://i.imgur.com/vdxNSJZ.png)
