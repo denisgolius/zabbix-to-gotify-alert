@@ -1,8 +1,11 @@
 server:
+  keepaliveperiodseconds: 0 # 0 = use Go default (15s); -1 = disable keepalive; set the interval in which keepalive packets will be sent. Only change this value if you know what you are doing.
+  listenaddr: "" # the address to bind on, leave empty to bind on all addresses
   port: 8080 # the port for the http server
   ssl:
     enabled: false # if https should be enabled
-    redirecttohttps: false # redirect to https if site is accessed by http
+    redirecttohttps: true # redirect to https if site is accessed by http
+    listenaddr: "" # the address to bind on, leave empty to bind on all addresses
     port: 443 # the https port
     certfile: # the cert file (leave empty when using letsencrypt)
     certkey: # the cert key (leave empty when using letsencrypt)
@@ -11,18 +14,33 @@ server:
       accepttos: false # if you accept the tos from letsencrypt
       cache: data/certs # the directory of the cache from letsencrypt
       hosts: # the hosts for which letsencrypt should request certificates
-        - your-domain.com
+  #     - mydomain.tld
+  #     - myotherdomain.tld
   responseheaders: # response headers are added to every response (default: none)
-    Access-Control-Allow-Origin: "*"
-    Access-Control-Allow-Methods: "GET,POST"
+  # X-Custom-Header: "custom value"
+
+  cors: # Sets cors headers only when needed and provides support for multiple allowed origins. Overrides Access-Control-* Headers in response headers.
+    alloworigins:
+      - "*"
+    allowmethods:
+      - "GET"
+      - "POST"
+    allowheaders:
+  #   - "Authorization"
+  #   - "content-type"
+
   stream:
+    pingperiodseconds: 45 # the interval in which websocket pings will be sent. Only change this value if you know what you are doing.
     allowedorigins: # allowed origins for websocket connections (same origin is always allowed, default only same origin)
-      - "your-domain.com"
+#     - ".+.example.com"
+#     - "otherdomain.com"
 database: # see below
   dialect: sqlite3
   connection: data/gotify.db
-defaultuser: # on database creation, gotify creates an admin user (these values will only be used for the first start, if you
+defaultuser: # on database creation, gotify creates an admin user (these values will only be used for the first start, if you want to edit the user after the first start use the WebUI)
   name: admin # the username of the default user
   pass: admin # the password of the default user
 passstrength: 10 # the bcrypt password strength (higher = better but also slower)
 uploadedimagesdir: data/images # the directory for storing uploaded images
+pluginsdir: data/plugins # the directory where plugin resides (leave empty to disable plugins)
+registration: false # enable registrations

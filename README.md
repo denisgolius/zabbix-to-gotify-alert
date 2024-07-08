@@ -4,7 +4,7 @@
 
 # Gotify Notifications for Zabbix
 
-This GitHub repository contains a script for integrating Gotify to be able send notifications with Zabbix. Follow these instructions to set up and use the script with your Zabbix and Gotify instances.
+This GitHub repository contains a script for integrating [Gotify](https://gotify.net/docs/install) to be able send notifications with Zabbix. Follow these instructions to set up and use the script with your Zabbix and Gotify instances.
 
 
 ## Prerequisites
