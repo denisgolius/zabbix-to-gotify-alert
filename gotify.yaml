@@ -1,0 +1,181 @@
+zabbix_export:
+  version: '6.4'
+  media_types:
+    - name: Gotify
+      type: WEBHOOK
+      parameters:
+        - name: Endpoint
+          value: 'http://push.example.com'
+        - name: Token
+          value: ''
+        - name: UserAgent
+          value: 'Zabbix Notifications'
+        - name: Message
+          value: '{ALERT.MESSAGE}'
+        - name: Subject
+          value: '{ALERT.SUBJECT}'
+        - name: Severity
+          value: '{TRIGGER.SEVERITY}'
+      status: DISABLED
+      script: |
+        var Gotify = {
+            token: null,
+            endpoint: null,
+            user_agent: null,
+            proxy: null,
+            title: null,
+            message: null,
+            priority: null,
+
+            sendMessage: function() {
+                var params = {
+                    title: Gotify.title,
+                    message: Gotify.message,
+                    priority: Gotify.priority,
+                },
+                data,
+                response,
+                request = new HttpRequest(),
+                url = Gotify.endpoint.replace(/\/$/, '') + '/message';// Remove trailing / from URL and add it back
+
+                if (Gotify.proxy) {
+                    request.setProxy(Gotify.proxy);
+                }
+
+                request.addHeader('User-Agent: ' + Gotify.user_agent);
+                request.addHeader('Content-Type: application/json');
+                request.addHeader('X-Gotify-Key: ' + Gotify.token);
+                data = JSON.stringify(params);
+
+                Zabbix.log(4, '[Gotify Webhook] URL: ' + url);
+                Zabbix.log(4, '[Gotify Webhook] params: ' + data);
+                response = request.post(url, data);
+                Zabbix.log(4, '[Gotify Webhook] HTTP code: ' + request.getStatus());
+
+                try {
+                    response = JSON.parse(response);
+                }
+                catch (error) {
+                    response = null;
+                }
+
+                if (request.getStatus() !== 200) {
+                    if (typeof response.error === 'string' && typeof response.errorDescription === 'string') {
+                      throw 'Gotify Error: ' + response.error + ': ' + response.errorDescription;
+                    }
+                    else {
+                        throw 'Unknown error. Check debug log for more information.'
+                    }
+                }
+            }
+        }
+
+        try {
+            var params = JSON.parse(value);
+
+            if (typeof params.Token === 'undefined') {
+                throw 'Incorrect value is given for parameter "Token": parameter is missing';
+            }
+
+            Gotify.endpoint = params.Endpoint;
+            Gotify.token = params.Token;
+
+            if (params.HTTPProxy) {
+                Gotify.proxy = params.HTTPProxy;
+            }
+
+            if (params.Severity) {
+              // Converting Zabbix issue level to Gotify priority
+              if (params.Severity === 'Disaster' ) {
+                Gotify.priority = 10;
+              } else if (params.Severity === 'High' ) {
+                Gotify.priority = 8;
+              } else if (params.Severity === 'Average' ) {
+                Gotify.priority = 5;
+              } else if (params.Severity === 'Warning' ) {
+                Gotify.priority = 3;
+              } else if (params.Severity === 'Information' ) {
+                Gotify.priority = 0;
+              } else if (params.Severity === 'Not classified' ) {
+                Gotify.priority = 0;
+              } else {
+                Gotify.priority = 1;// Default value for undefined severity
+              }
+            }
+
+            Gotify.user_agent = params.UserAgent;
+            Gotify.title = params.Subject;
+            Gotify.message = params.Message;
+            Gotify.sendMessage();
+
+            return 'OK';
+        }
+        catch (error) {
+            Zabbix.log(4, '[Gotify Webhook] notification failed: ' + error);
+            throw 'Sending failed: ' + error + '.';
+        }
+      timeout: 10s
+      description: |
+        https://github.com/denisgolius/zabbix-to-gotify-alert
+
+        1. Obtain a token from the Gotify server
+            1.1. Login to the Gotify UI via your web browser.
+            1.2. Navigate to the Apps section.
+            1.3. Press on Create App.
+            1.2. Create a new application.
+              1.2.1. Enter the name for your application, for example Zabbix Notifications.
+              1.2.2. Press Create, once the application is created, you'll see an API Token.
+        2. Copy and paste the obtained token into the "Token" field above
+
+      message_templates:
+        - event_source: TRIGGERS
+          operation_mode: PROBLEM
+          subject: 'Problem: {EVENT.NAME}'
+          message: |
+            Problem started at {EVENT.TIME} on {EVENT.DATE}
+            Problem name: {EVENT.NAME}
+            Host: {HOST.NAME}
+            Severity: {EVENT.SEVERITY}
+            Operational data: {EVENT.OPDATA}
+            Original problem ID: {EVENT.ID}
+            {TRIGGER.URL}
+        - event_source: TRIGGERS
+          operation_mode: RECOVERY
+          subject: 'Resolved in {EVENT.DURATION}: {EVENT.NAME}'
+          message: |
+            Problem has been resolved in {EVENT.DURATION} at {EVENT.RECOVERY.TIME} on {EVENT.RECOVERY.DATE}
+            Problem name: {EVENT.NAME}
+            Host: {HOST.NAME}
+            Severity: {EVENT.SEVERITY}
+            Original problem ID: {EVENT.ID}
+            {TRIGGER.URL}
+        - event_source: TRIGGERS
+          operation_mode: UPDATE
+          subject: 'Updated problem: {EVENT.NAME}'
+          message: |
+            {USER.FULLNAME} {EVENT.UPDATE.ACTION} problem at {EVENT.UPDATE.DATE} {EVENT.UPDATE.TIME}.
+            {EVENT.UPDATE.MESSAGE}
+
+            Current problem status is {EVENT.STATUS}, acknowledged: {EVENT.ACK.STATUS}.
+        - event_source: DISCOVERY
+          operation_mode: PROBLEM
+          subject: 'Discovery: {DISCOVERY.DEVICE.STATUS} {DISCOVERY.DEVICE.IPADDRESS}'
+          message: |
+            Discovery rule: {DISCOVERY.RULE.NAME}
+
+            Device IP: {DISCOVERY.DEVICE.IPADDRESS}
+            Device DNS: {DISCOVERY.DEVICE.DNS}
+            Device status: {DISCOVERY.DEVICE.STATUS}
+            Device uptime: {DISCOVERY.DEVICE.UPTIME}
+
+            Device service name: {DISCOVERY.SERVICE.NAME}
+            Device service port: {DISCOVERY.SERVICE.PORT}
+            Device service status: {DISCOVERY.SERVICE.STATUS}
+            Device service uptime: {DISCOVERY.SERVICE.UPTIME}
+        - event_source: AUTOREGISTRATION
+          operation_mode: PROBLEM
+          subject: 'Autoregistration: {HOST.HOST}'
+          message: |
+            Host name: {HOST.HOST}
+            Host IP: {HOST.IP}
+            Agent port: {HOST.PORT}
